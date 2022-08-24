@@ -1,0 +1,58 @@
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using PokemonReviewApp.Dto;
+using PokemonReviewApp.Interfaces;
+using PokemonReviewApp.Models;
+using PokemonReviewApp.Repository;
+
+namespace PokemonReviewApp.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ReviewController : Controller
+    {
+
+        private readonly IReviewRepository _reviewRepository;
+        private readonly IMapper _mapper;
+        //Inject repository into controller
+        public ReviewController(IReviewRepository reviewRepository, IMapper mapper)
+        {
+            _reviewRepository = reviewRepository;
+            _mapper = mapper;
+        }
+
+        [HttpGet]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<Review>))]
+
+        //Returning a list 
+        public IActionResult GetReviews()
+        {
+            //BRINING IN CODE FROM REPOSITORY - don't have to hardcode
+            var reviews = _mapper.Map<List<ReviewDto>>(_reviewRepository.GetReviews());
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+
+            return Ok(reviews);
+        }
+        [HttpGet("{reviewId}")]
+        [ProducesResponseType(200, Type = typeof(Review))]
+        [ProducesResponseType(400)]
+
+        public IActionResult GetReview(int reviewId)
+        {
+            if (!_reviewRepository.ReviewExists(reviewId))
+
+                return NotFound();
+
+            var review = _mapper.Map<ReviewDto>(_reviewRepository.GetReview(reviewId));
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+
+            return Ok(review);
+
+        }
+    }
+}
